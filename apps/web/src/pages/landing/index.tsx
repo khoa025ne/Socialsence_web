@@ -9,7 +9,7 @@ import { LiquidMetalButton } from "@workspace/ui/components/liquid-metal-button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@workspace/ui/components/accordion"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@workspace/ui/components/tooltip"
 import { AnimatedBeam, BeamNode } from "@workspace/ui/components/animated-beam"
-import { Cpu, Zap, Crown, Sparkles, TrendingUp, Database, ArrowRight, Check, ShieldAlert } from "lucide-react"
+import { Cpu, Zap, Crown, Sparkles, TrendingUp, Database, ArrowRight, Check, ShieldAlert, Download } from "lucide-react"
 
 // Custom SVG Icons
 const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -186,6 +186,18 @@ export default function LandingPage() {
               <Link to="/auth/register">
                 <LiquidMetalButton label="Bắt đầu miễn phí" textColor="#ffffff" />
               </Link>
+              <a
+                href="https://drive.google.com/file/d/1EwBGinY8MtlwQySNBqC5biu4eumdzQdc/view?usp=drive_link"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative rounded-xl bg-foreground text-background px-6 py-3 text-sm font-semibold overflow-hidden shadow-lg hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2 border border-white/10"
+              >
+                <div className="absolute inset-0 bg-linear-to-r from-violet-500/10 via-fuchsia-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <span className="relative z-10 flex items-center gap-1.5">
+                  <Download className="size-3.5 animate-bounce" />
+                  Tải App di động (APK)
+                </span>
+              </a>
               <a href="#features" className="rounded-xl border border-border px-6 py-3 text-sm font-semibold hover:bg-muted/50 transition-colors">
                 Tìm hiểu thêm
               </a>
@@ -327,6 +339,96 @@ export default function LandingPage() {
                 </div>
               </div>
             </DoubleBezelCard>
+          </div>
+        </div>
+      </section>
+
+      {/* Mobile App Section - Premium Android Mockup & Large APK Download Button */}
+      <section id="mobile-app" className="border-t bg-muted/10 py-20 overflow-hidden relative">
+        <div className="content-width grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          {/* Mockup phone area */}
+          <div className="lg:col-span-5 order-2 lg:order-1 flex justify-center">
+            <div className="relative w-[280px] h-[560px] rounded-[40px] border-8 border-foreground bg-background p-4 shadow-2xl flex flex-col justify-between overflow-hidden">
+              {/* Speaker / Camera bar */}
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-4 rounded-full bg-foreground z-20 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-muted-foreground/30 mr-2" />
+                <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+              </div>
+              
+              {/* Screen Content */}
+              <div className="w-full h-full flex flex-col pt-6 justify-between relative bg-black text-white p-4 font-sans rounded-[28px] overflow-hidden select-none">
+                {/* Background glow in phone */}
+                <div className="absolute -top-20 -left-20 w-48 h-48 rounded-full bg-violet-500/10 blur-3xl" />
+                <div className="absolute -bottom-20 -right-20 w-48 h-48 rounded-full bg-fuchsia-500/10 blur-3xl" />
+                
+                {/* Header */}
+                <div className="flex justify-between items-center z-10">
+                  <span className="text-[10px] font-mono font-bold text-white/90">SocialSence</span>
+                  <div className="size-2 rounded-full bg-emerald-500" />
+                </div>
+
+                {/* Body inside phone */}
+                <div className="my-auto flex flex-col gap-4 text-center z-10">
+                  <div className="size-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center mx-auto shadow-lg">
+                    <span className="font-serif text-3xl font-bold">S</span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold tracking-tight">SocialSence Mobile</h4>
+                    <p className="text-[10px] text-muted-foreground mt-1 max-w-[200px] mx-auto">Tạo bài viết AI & xem báo cáo phân tích thời gian thực mọi lúc, mọi nơi.</p>
+                  </div>
+                  
+                  {/* Quota ring preview */}
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-left">
+                    <div>
+                      <div className="text-[9px] text-muted-foreground font-mono">QUOTA ĐÃ DÙNG</div>
+                      <div className="text-xs font-bold font-mono">148 / 500 bài</div>
+                    </div>
+                    <div className="size-8 rounded-full border-4 border-white/10 border-t-white flex items-center justify-center text-[8px] font-mono">30%</div>
+                  </div>
+                </div>
+
+                {/* Footer in phone */}
+                <div className="h-10 border-t border-white/10 flex items-center justify-around text-xs text-muted-foreground z-10 font-mono">
+                  <span>Trang chủ</span>
+                  <span>AI</span>
+                  <span>Báo cáo</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Text Content area */}
+          <div className="lg:col-span-7 order-1 lg:order-2 flex flex-col items-start justify-center">
+            <EyebrowBadge>Ứng dụng di động</EyebrowBadge>
+            <h2 className="mt-6 font-serif text-3xl md:text-5xl tracking-tight leading-tight">
+              Quản trị hiệu suất<br />mạng xã hội trong tầm tay
+            </h2>
+            <p className="mt-4 text-muted-foreground text-sm md:text-base max-w-lg leading-relaxed">
+              Trải nghiệm ứng dụng di động SocialSence dành riêng cho Android. Đưa toàn bộ quy trình sản xuất nội dung bằng AI, cập nhật trend nóng hổi và báo cáo so sánh chỉ số của bạn lên giao diện di động trực quan, tốc độ cao.
+            </p>
+            
+            <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+              <a
+                href="https://drive.google.com/file/d/1EwBGinY8MtlwQySNBqC5biu4eumdzQdc/view?usp=drive_link"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative rounded-2xl bg-foreground text-background px-8 py-5 text-base font-bold shadow-2xl hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:scale-105 active:scale-98 transition-all duration-300 flex items-center justify-center gap-3 border border-white/10"
+              >
+                {/* Shimmer light effect inside button */}
+                <div className="absolute inset-0 bg-linear-to-r from-violet-500/10 via-fuchsia-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <Download className="size-5 animate-bounce" />
+                <div className="text-left font-sans">
+                  <div className="text-[10px] uppercase font-mono tracking-wider text-background/60">Tải ứng dụng di động</div>
+                  <div className="text-sm font-bold">SocialSence v1.0.0 (APK)</div>
+                </div>
+              </a>
+              
+              <div className="flex flex-col justify-center text-xs text-muted-foreground font-mono bg-muted/40 px-4 py-3 rounded-xl border border-dashed">
+                <span>• Hỗ trợ: Android 8.0 trở lên</span>
+                <span>• Kích thước file: ~18 MB</span>
+                <span>• Bản phát hành chính thức trực tiếp</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
