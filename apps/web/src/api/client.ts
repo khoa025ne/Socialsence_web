@@ -1,7 +1,7 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   import.meta.env.VITE_API_URL ||
-  "http://localhost:5280"
+  "https://truthful-youth-production-d00b.up.railway.app"
 
 type RequestConfig = {
   method?: string
