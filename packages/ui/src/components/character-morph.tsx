@@ -54,7 +54,7 @@ export function CharacterMorph({ words, className, interval = 3000 }: CharacterM
               <motion.span
                 key={`${index}-${i}-${letter}`}
                 initial={{ y: 25, opacity: 0, scale: 0.7, filter: "blur(4px)" }}
-                animate={{ y: 0, opacity: 1, scale: 1, filter: "blur(0px)" }}
+                animate={{ y: 0, opacity: 1, scale: 1, filter: "blur(0.01px)" }}
                 exit={{ y: -25, opacity: 0, scale: 0.7, filter: "blur(4px)" }}
                 transition={{
                   duration: 0.45,

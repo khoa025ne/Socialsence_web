@@ -516,12 +516,15 @@
     animation: shimmer 1.5s ease-in-out infinite;
 }
 
-/* Custom global cursor none rule to support Joly UI MorphingCursor */
+/* Enforce native system cursor */
 body {
-  cursor: none !important;
+  cursor: auto !important;
 }
-html, a, button, [role="button"], select, input, textarea, .cursor-pointer {
-  cursor: none !important;
+a, button, [role="button"], select, .cursor-pointer {
+  cursor: pointer !important;
+}
+input, textarea {
+  cursor: text !important;
 }
 
 @keyframes marquee {

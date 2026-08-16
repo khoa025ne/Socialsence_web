@@ -1,14 +1,20 @@
 import { useState, useEffect, useRef } from "react"
+import { useSearchParams } from "react-router-dom"
 import { Button } from "@workspace/ui/components/button"
 import { DoubleBezelCard } from "@workspace/ui/components/double-bezel-card"
 import { EyebrowBadge } from "@workspace/ui/components/eyebrow-badge"
 import { PageHeader } from "@workspace/ui/components/page-header"
 import { useAuthStore } from "@/stores/auth-store"
 import { paymentApi, type CreatePaymentResponse, type SubscriptionInfo } from "@/api/payment"
+import { authApi } from "@/api/auth"
 import { toast } from "sonner"
 import { Loader2, ExternalLink, QrCode, ShieldCheck, Check, Zap } from "lucide-react"
 
 export default function SubscriptionPage() {
+  const [searchParams] = useSearchParams()
+  const targetPlanParam = searchParams.get("plan")
+  const hasAutoTriggered = useRef(false)
+
   const { user } = useAuthStore()
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
   const [loadingSub, setLoadingSub] = useState(true)
@@ -16,14 +22,26 @@ export default function SubscriptionPage() {
   const [paymentData, setPaymentData] = useState<CreatePaymentResponse | null>(null)
   const [creatingPayment, setCreatingPayment] = useState(false)
   const [showQR, setShowQR] = useState(false)
+  const [planPrices, setPlanPrices] = useState<Record<string, number>>({
+    Pro: 79000,
+    Ultra: 99000,
+  })
   const pollingInterval = useRef<any>(null)
 
-  // Fetch subscription info
+  // Fetch subscription info & dynamic plan prices & sync global store
   const fetchSubInfo = async () => {
     try {
       setLoadingSub(true)
       const data = await paymentApi.getSubscription()
       setSubInfo(data)
+
+      // Sync latest user profile and quota to global store
+      const [profile, quotaInfo] = await Promise.all([
+        authApi.getMe(),
+        authApi.getQuota()
+      ])
+      if (profile) useAuthStore.getState().setUser(profile)
+      if (quotaInfo) useAuthStore.getState().setQuota(quotaInfo)
     } catch (error) {
       console.error("Failed to fetch subscription", error)
     } finally {
@@ -33,10 +51,29 @@ export default function SubscriptionPage() {
 
   useEffect(() => {
     fetchSubInfo()
+    paymentApi.getPlans().then((res: any) => {
+      const rawPlans = res?.plans || res
+      if (Array.isArray(rawPlans)) {
+        const map: Record<string, number> = {}
+        rawPlans.forEach((p: any) => {
+          if (p.tier) map[p.tier] = p.price
+        })
+        setPlanPrices(prev => ({ ...prev, ...map }))
+      }
+    }).catch(() => {})
+
     return () => {
       if (pollingInterval.current) clearInterval(pollingInterval.current)
     }
   }, [])
+
+  // Auto trigger plan payment if URL parameter ?plan=Pro or ?plan=Ultra is provided
+  useEffect(() => {
+    if (targetPlanParam && (targetPlanParam === "Pro" || targetPlanParam === "Ultra" || targetPlanParam === "Enterprise") && !hasAutoTriggered.current) {
+      hasAutoTriggered.current = true
+      handleSelectPlan(targetPlanParam)
+    }
+  }, [targetPlanParam])
 
   // Start polling order status
   const startPolling = (orderCode: number) => {
@@ -149,7 +186,7 @@ export default function SubscriptionPage() {
                 <span className="px-2 py-0.5 border text-[10px] uppercase font-mono tracking-wider rounded text-muted-foreground">Phổ biến</span>
               </div>
               <div className="mt-4 flex items-baseline">
-                <span className="text-4xl font-bold">₫50,000</span>
+                <span className="text-4xl font-bold">₫{(planPrices.Pro || 79000).toLocaleString('vi-VN')}</span>
                 <span className="text-muted-foreground text-sm ml-2">/ tháng</span>
               </div>
               <p className="mt-2 text-muted-foreground text-xs">Phù hợp cho cá nhân làm nội dung chuyên nghiệp.</p>
@@ -199,7 +236,7 @@ export default function SubscriptionPage() {
                   <span className="px-2.5 py-0.5 bg-primary text-primary-foreground text-[10px] uppercase font-mono tracking-widest font-bold rounded">Tối ưu nhất</span>
                 </div>
                 <div className="mt-4 flex items-baseline">
-                  <span className="text-4xl font-bold">₫79,000</span>
+                  <span className="text-4xl font-bold">₫{(planPrices.Ultra || planPrices.Enterprise || 99000).toLocaleString('vi-VN')}</span>
                   <span className="text-muted-foreground text-sm ml-2">/ tháng</span>
                 </div>
                 <p className="mt-2 text-muted-foreground text-xs">Dành cho Agency, đội nhóm marketing lớn cần hiệu suất tối đa.</p>

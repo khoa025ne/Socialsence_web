@@ -546,14 +546,12 @@ const SphereImageGrid: React.FC<SphereImageGridProps> = ({
           key={image.id}
           role="button"
           tabIndex={0}
-          className="absolute cursor-pointer select-none transition-transform duration-200 ease-out"
+          className="absolute cursor-pointer select-none transition-transform duration-150 ease-out will-change-transform"
           style={{
             width: `${imageSize}px`,
             height: `${imageSize}px`,
-            left: `${containerSize / 2 + position.x}px`,
-            top: `${containerSize / 2 + position.y}px`,
+            transform: `translate3d(${containerSize / 2 + position.x - imageSize / 2}px, ${containerSize / 2 + position.y - imageSize / 2}px, 0px) scale(${finalScale})`,
             opacity: position.fadeOpacity,
-            transform: `translate(-50%, -50%) scale(${finalScale})`,
             zIndex: position.zIndex,
           }}
           onMouseEnter={() => setHoveredIndex(index)}

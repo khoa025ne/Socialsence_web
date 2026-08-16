@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
+import { useNavigate, Link, useSearchParams } from "react-router-dom"
 import { Button } from "@workspace/ui/components/button"
 import { DoubleBezelCard } from "@workspace/ui/components/double-bezel-card"
 import { useAuthStore } from "@/stores/auth-store"
@@ -8,6 +8,8 @@ import { authApi } from "@/api/auth"
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const planParam = searchParams.get("plan")
   const setAuth = useAuthStore((state) => state.setAuth)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -57,11 +59,15 @@ export default function RegisterPage() {
           console.error("Failed to load quota after auto-login", qErr)
         }
 
-        navigate("/onboarding")
+        if (planParam && (planParam === "Pro" || planParam === "Ultra" || planParam === "Enterprise")) {
+          navigate(`/settings/subscription?plan=${planParam}`)
+        } else {
+          navigate("/onboarding")
+        }
       } catch (loginErr) {
         console.error("Auto-login failed after register", loginErr)
         toast.info("Đăng ký thành công! Vui lòng đăng nhập lại thủ công.")
-        navigate("/auth/login")
+        navigate(planParam ? `/auth/login?plan=${planParam}` : "/auth/login")
       }
     } catch (error: any) {
       console.error("Registration failed", error)

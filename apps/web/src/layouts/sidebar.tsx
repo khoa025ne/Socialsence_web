@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom"
 import { useAuthStore } from "@/stores/auth-store"
 import { useUIStore } from "@/stores/ui-store"
+import { authApi } from "@/api/auth"
 import { QuotaRing } from "@workspace/ui/components/quota-ring"
 import { TierBadge } from "@workspace/ui/components/tier-badge"
 import { cn } from "@workspace/ui/lib/utils"
@@ -104,15 +105,30 @@ export function Sidebar() {
   React.useEffect(() => {
     const checkConnection = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5280"
-        const res = await fetch(`${apiUrl}/health`)
+        const apiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://truthful-youth-production-d00b.up.railway.app"
+        const res = await fetch(`${apiUrl}/payment/plans`)
         if (res.ok) setBeOnline(true)
         else setBeOnline(false)
       } catch {
         setBeOnline(false)
       }
     }
+
+    const syncUserData = async () => {
+      try {
+        const [profile, quotaInfo] = await Promise.all([
+          authApi.getMe(),
+          authApi.getQuota()
+        ])
+        if (profile) useAuthStore.getState().setUser(profile)
+        if (quotaInfo) useAuthStore.getState().setQuota(quotaInfo)
+      } catch {
+        // ignore if not logged in
+      }
+    }
+
     checkConnection()
+    syncUserData()
   }, [])
 
   // Auto-expand group containing current path
@@ -270,7 +286,9 @@ export function Sidebar() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{user.displayName}</p>
                   <div className="flex items-center gap-1.5">
-                    <TierBadge tier={user.tier} />
+                    <Link to="/settings/subscription" title="Nâng cấp gói cước" className="inline-flex">
+                      <TierBadge tier={quota?.tier || user.tier} />
+                    </Link>
                   </div>
                 </div>
               </div>

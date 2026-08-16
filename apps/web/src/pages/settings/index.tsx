@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { useAuthStore } from "@/stores/auth-store"
 import { authApi } from "@/api/auth"
 import { PageHeader } from "@workspace/ui/components/page-header"
@@ -132,7 +133,9 @@ export default function SettingsIndexPage() {
               </p>
               
               <div className="flex flex-wrap gap-2 justify-center mt-2">
-                <TierBadge tier={user?.tier || "Free"} />
+                <Link to="/settings/subscription" title="Nâng cấp gói cước" className="inline-flex">
+                  <TierBadge tier={user?.tier || "Free"} />
+                </Link>
                 {user?.roles?.includes("Admin") && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/10 text-red-500 border border-red-500/20">
                     <ShieldAlert className="size-3" />

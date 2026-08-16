@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
+import { useNavigate, Link, useSearchParams } from "react-router-dom"
 import { Button } from "@workspace/ui/components/button"
 import { DoubleBezelCard } from "@workspace/ui/components/double-bezel-card"
 import { useAuthStore } from "@/stores/auth-store"
@@ -8,6 +8,8 @@ import { authApi } from "@/api/auth"
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const planParam = searchParams.get("plan")
   const setAuth = useAuthStore((state) => state.setAuth)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -51,7 +53,11 @@ export default function LoginPage() {
       }
 
       toast.success("Đăng nhập thành công!")
-      navigate("/dashboard")
+      if (planParam && (planParam === "Pro" || planParam === "Ultra" || planParam === "Enterprise")) {
+        navigate(`/settings/subscription?plan=${planParam}`)
+      } else {
+        navigate("/dashboard")
+      }
     } catch (error: any) {
       console.error("Login failed", error)
       const errorMsg = error.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại email/mật khẩu!"

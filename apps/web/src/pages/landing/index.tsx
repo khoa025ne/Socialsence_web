@@ -1,5 +1,7 @@
-import { useState, useRef } from "react"
-import { Link } from "react-router-dom"
+import { useState, useRef, useEffect } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { useAuthStore } from "@/stores/auth-store"
+import { paymentApi } from "@/api/payment"
 import { Button } from "@workspace/ui/components/button"
 import { CharacterMorph } from "@workspace/ui/components/character-morph"
 import { DoubleBezelCard } from "@workspace/ui/components/double-bezel-card"
@@ -154,6 +156,35 @@ function PhoneCardPreview() {
 }
 
 export default function LandingPage() {
+  const navigate = useNavigate()
+  const { user } = useAuthStore()
+  const [planPrices, setPlanPrices] = useState<Record<string, number>>({
+    Free: 0,
+    Pro: 79000,
+    Ultra: 99000,
+  })
+
+  const handlePlanSelect = (plan: string) => {
+    if (user) {
+      navigate(`/settings/subscription?plan=${plan}`)
+    } else {
+      navigate(`/auth/register?plan=${plan}`)
+    }
+  }
+
+  useEffect(() => {
+    paymentApi.getPlans().then((res: any) => {
+      const rawPlans = res?.plans || res
+      if (Array.isArray(rawPlans)) {
+        const map: Record<string, number> = {}
+        rawPlans.forEach((p: any) => {
+          if (p.tier) map[p.tier] = p.price
+        })
+        setPlanPrices(prev => ({ ...prev, ...map }))
+      }
+    }).catch(() => {})
+  }, [])
+
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
       {/* Ambient Drift Background */}
@@ -466,9 +497,9 @@ export default function LandingPage() {
                 </li>
               </ul>
             </div>
-            <Link to="/auth/register" className="mt-8">
-              <Button variant="outline" className="w-full">Bắt đầu ngay</Button>
-            </Link>
+            <div className="mt-8">
+              <Button variant="outline" className="w-full cursor-pointer" onClick={() => handlePlanSelect("Free")}>Bắt đầu ngay</Button>
+            </div>
           </DoubleBezelCard>
 
           {/* Pro Plan - Clean typography */}
@@ -482,7 +513,7 @@ export default function LandingPage() {
                 <span className="px-2 py-0.5 border text-muted-foreground text-[10px] uppercase font-mono tracking-wider rounded">Phổ biến</span>
               </div>
               <div className="mt-4 flex items-baseline">
-                <span className="text-4xl font-bold">₫50,000</span>
+                <span className="text-4xl font-bold">₫{(planPrices.Pro || 79000).toLocaleString('vi-VN')}</span>
                 <span className="text-muted-foreground text-sm ml-2">/ tháng</span>
               </div>
               <p className="mt-2 text-muted-foreground text-xs">Đầy đủ tính năng cao cấp cho nhà sáng tạo thực thụ.</p>
@@ -505,9 +536,9 @@ export default function LandingPage() {
                 </li>
               </ul>
             </div>
-            <Link to="/auth/register" className="mt-8">
-              <Button variant="outline" className="w-full">Đăng ký gói Pro</Button>
-            </Link>
+            <div className="mt-8">
+              <Button variant="outline" className="w-full cursor-pointer" onClick={() => handlePlanSelect("Pro")}>Đăng ký gói Pro</Button>
+            </div>
           </DoubleBezelCard>
 
           {/* Ultra Plan - Super Premium Shimmer & Ring, Maximum Value */}
@@ -522,7 +553,7 @@ export default function LandingPage() {
                   <span className="px-2.5 py-0.5 bg-foreground text-background text-[10px] uppercase font-mono tracking-widest font-bold rounded">Tối ưu nhất</span>
                 </div>
                 <div className="mt-4 flex items-baseline">
-                  <span className="text-4xl font-bold">₫79,000</span>
+                  <span className="text-4xl font-bold">₫{(planPrices.Ultra || planPrices.Enterprise || 99000).toLocaleString('vi-VN')}</span>
                   <span className="text-muted-foreground text-sm ml-2">/ tháng</span>
                 </div>
                 <p className="mt-2 text-muted-foreground text-xs">Dành cho Agency, các đội nhóm marketing lớn cần hiệu suất tối đa.</p>
@@ -553,9 +584,9 @@ export default function LandingPage() {
                   </li>
                 </ul>
               </div>
-              <Link to="/auth/register" className="mt-8">
-                <Button variant="shimmer" className="w-full text-base font-bold h-11">Đăng ký gói Ultra</Button>
-              </Link>
+              <div className="mt-8">
+                <Button variant="shimmer" className="w-full text-base font-bold h-11 cursor-pointer" onClick={() => handlePlanSelect("Ultra")}>Đăng ký gói Ultra</Button>
+              </div>
             </div>
           </div>
         </div>
