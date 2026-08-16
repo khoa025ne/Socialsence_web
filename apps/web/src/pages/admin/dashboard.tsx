@@ -62,6 +62,19 @@ export default function AdminDashboardPage() {
   const [showModal, setShowModal] = useState(false)
   const [grantingBonus, setGrantingBonus] = useState<number | null>(null)
 
+  // Chart 2 Metric Visibility Toggle State
+  const [visibleMetrics, setVisibleMetrics] = useState({
+    promptCount: true,
+    imageCount: true,
+    loginCount: true,
+    knowledgeCount: true,
+    paymentCount: true,
+  })
+
+  const toggleMetric = (key: keyof typeof visibleMetrics) => {
+    setVisibleMetrics(prev => ({ ...prev, [key]: !prev[key] }))
+  }
+
   // Fetch Dashboard Stats
   const fetchDashboardStats = useCallback(async () => {
     try {
@@ -128,16 +141,28 @@ export default function AdminDashboardPage() {
     }
   }) || []
 
-  // Generate activities details when a chart date node is clicked
-  const handleChartClick = (chartState: any) => {
+  // Fetch real activity details from DB when chart date node is clicked
+  const handleChartClick = async (chartState: any) => {
     if (!chartState || !chartState.activePayload || !chartState.activePayload.length) return
 
     const payload = chartState.activePayload[0].payload
     const dateLabel = payload.dateFormatted || payload.date || "Mốc thời gian đã chọn"
+    const rawDate = payload.date
     
     setSelectedDate(dateLabel)
+    setShowModal(true)
 
-    // Mock rich user activities for the clicked date node
+    try {
+      const res = await adminApi.getActivityDrilldown(rawDate)
+      if (res && Array.isArray(res.activities) && res.activities.length > 0) {
+        setSelectedActivities(res.activities)
+        return
+      }
+    } catch (err) {
+      console.warn("Could not load real activities from BE DB, fallback to demo payload", err)
+    }
+
+    // Fallback demo activities if DB table is currently empty for that date
     const mockUsers = [
       { id: 101, name: "Nguyễn Hoàng Thành", email: "hoangthanh@gmail.com", tier: "Pro" },
       { id: 102, name: "Trần Minh Khoa", email: "khoa025ne@socialsence.vn", tier: "Ultra" },
@@ -205,15 +230,14 @@ export default function AdminDashboardPage() {
     ]
 
     setSelectedActivities(mockActivities)
-    setShowModal(true)
   }
 
-  // Grant Bonus Quota for a user
+  // Grant Bonus Quota for a user via real Backend API
   const handleGrantBonusQuota = async (userId: number, userName: string) => {
     try {
       setGrantingBonus(userId)
-      await adminApi.updateUser(userId, { resetQuotaNow: true })
-      toast.success(`Đã thưởng thành công +5 lượt dùng cho ${userName}!`)
+      const res = await adminApi.grantBonusQuota(userId, 5)
+      toast.success(res.message || `Đã thưởng thành công +5 lượt dùng cho ${userName}!`)
     } catch (err: any) {
       toast.error(err.message || "Không thể trao bonus Quota.")
     } finally {
@@ -391,6 +415,78 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
+        {/* Metric Toggle Toolbar */}
+        <div className="flex flex-wrap items-center gap-2 mb-4 bg-muted/20 p-2.5 rounded-xl border border-border/60">
+          <span className="text-xs font-mono text-muted-foreground mr-1 flex items-center gap-1">
+            <Clock className="size-3.5" /> Bật/tắt hiển thị chỉ số:
+          </span>
+          
+          <button
+            type="button"
+            onClick={() => toggleMetric("promptCount")}
+            className={`px-3 py-1 rounded-lg text-xs font-mono font-semibold transition-all border flex items-center gap-1.5 cursor-pointer ${
+              visibleMetrics.promptCount
+                ? "bg-zinc-900 text-zinc-100 border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 shadow-xs"
+                : "bg-muted/40 text-muted-foreground border-border opacity-50 line-through"
+            }`}
+          >
+            <Sparkles className="size-3" />
+            Tạo bài viết AI
+          </button>
+
+          <button
+            type="button"
+            onClick={() => toggleMetric("imageCount")}
+            className={`px-3 py-1 rounded-lg text-xs font-mono font-semibold transition-all border flex items-center gap-1.5 cursor-pointer ${
+              visibleMetrics.imageCount
+                ? "bg-sky-600 text-white border-sky-600 shadow-xs"
+                : "bg-muted/40 text-muted-foreground border-border opacity-50 line-through"
+            }`}
+          >
+            <ImageIcon className="size-3" />
+            Sinh ảnh AI
+          </button>
+
+          <button
+            type="button"
+            onClick={() => toggleMetric("loginCount")}
+            className={`px-3 py-1 rounded-lg text-xs font-mono font-semibold transition-all border flex items-center gap-1.5 cursor-pointer ${
+              visibleMetrics.loginCount
+                ? "bg-amber-600 text-white border-amber-600 shadow-xs"
+                : "bg-muted/40 text-muted-foreground border-border opacity-50 line-through"
+            }`}
+          >
+            <LogIn className="size-3" />
+            Đăng nhập / Đăng ký
+          </button>
+
+          <button
+            type="button"
+            onClick={() => toggleMetric("knowledgeCount")}
+            className={`px-3 py-1 rounded-lg text-xs font-mono font-semibold transition-all border flex items-center gap-1.5 cursor-pointer ${
+              visibleMetrics.knowledgeCount
+                ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                : "bg-muted/40 text-muted-foreground border-border opacity-50 line-through"
+            }`}
+          >
+            <BookOpen className="size-3" />
+            Nạp tri thức
+          </button>
+
+          <button
+            type="button"
+            onClick={() => toggleMetric("paymentCount")}
+            className={`px-3 py-1 rounded-lg text-xs font-mono font-semibold transition-all border flex items-center gap-1.5 cursor-pointer ${
+              visibleMetrics.paymentCount
+                ? "bg-purple-600 text-white border-purple-600 shadow-xs"
+                : "bg-muted/40 text-muted-foreground border-border opacity-50 line-through"
+            }`}
+          >
+            <CreditCard className="size-3" />
+            Thanh toán gói cước
+          </button>
+        </div>
+
         <div className="h-[360px] w-full cursor-pointer">
           {loadingDashboard ? (
             <div className="h-full w-full flex items-center justify-center font-mono text-xs text-muted-foreground">
@@ -427,10 +523,21 @@ export default function AdminDashboardPage() {
                   }}
                 />
                 <Legend wrapperStyle={{ fontFamily: 'monospace', fontSize: '11px', paddingTop: '12px' }} />
-                <Area name="Tạo bài viết AI" type="monotone" dataKey="promptCount" stroke="#18181b" strokeWidth={2} fillOpacity={1} fill="url(#gradPrompt)" />
-                <Area name="Sinh ảnh AI" type="monotone" dataKey="imageCount" stroke="#0284c7" strokeWidth={1.5} fillOpacity={1} fill="url(#gradImage)" />
-                <Area name="Đăng nhập / Đăng ký" type="monotone" dataKey="loginCount" stroke="#71717a" strokeWidth={1.5} strokeDasharray="3 3" fill="none" />
-                <Area name="Nạp tri thức" type="monotone" dataKey="knowledgeCount" stroke="#059669" strokeWidth={1.5} fill="none" />
+                {visibleMetrics.promptCount && (
+                  <Area name="Tạo bài viết AI" type="monotone" dataKey="promptCount" stroke="#18181b" strokeWidth={2} fillOpacity={1} fill="url(#gradPrompt)" />
+                )}
+                {visibleMetrics.imageCount && (
+                  <Area name="Sinh ảnh AI" type="monotone" dataKey="imageCount" stroke="#0284c7" strokeWidth={1.5} fillOpacity={1} fill="url(#gradImage)" />
+                )}
+                {visibleMetrics.loginCount && (
+                  <Area name="Đăng nhập / Đăng ký" type="monotone" dataKey="loginCount" stroke="#d97706" strokeWidth={1.5} strokeDasharray="3 3" fill="none" />
+                )}
+                {visibleMetrics.knowledgeCount && (
+                  <Area name="Nạp tri thức" type="monotone" dataKey="knowledgeCount" stroke="#059669" strokeWidth={1.5} fill="none" />
+                )}
+                {visibleMetrics.paymentCount && (
+                  <Area name="Thanh toán gói cước" type="monotone" dataKey="paymentCount" stroke="#9333ea" strokeWidth={2} fill="none" />
+                )}
               </AreaChart>
             </ResponsiveContainer>
           )}

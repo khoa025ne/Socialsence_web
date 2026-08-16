@@ -122,6 +122,12 @@ export const adminApi = {
   compareStats: (data: { period: string; periodA: string; periodB: string }) =>
     api.post<StatsCompareResponse>("/admin/stats/compare", data),
 
+  getActivityDrilldown: (date?: string) =>
+    api.get<{ date: string; total: number; activities: any[] }>(`/admin/activities/drilldown${date ? `?date=${date}` : ""}`),
+
+  grantBonusQuota: (userId: number, amount: number = 5) =>
+    api.post<{ message: string; userId: number; remainingQuota: number }>(`/admin/users/${userId}/bonus-quota?amount=${amount}`),
+
   seed: () =>
     api.post<{ message: string }>("/admin/seed"),
 }
