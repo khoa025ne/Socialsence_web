@@ -35,7 +35,8 @@ import {
   BookOpen,
   LogIn,
   CheckCircle2,
-  Clock
+  Clock,
+  Activity
 } from "lucide-react"
 import { Link } from "react-router-dom"
 
@@ -93,13 +94,14 @@ export default function AdminDashboardPage() {
     fetchDashboardStats()
   }, [fetchDashboardStats])
 
-  // Mock subscription conversion data based on 7 days
+  // Real subscription conversion data based on 7 days from Backend DB
   const subscriptionChartData = dashboardData?.last7DaysContent?.map((item, index) => {
     const dateFormatted = item.date ? new Date(item.date).toLocaleDateString("vi-VN", { day: 'numeric', month: 'short' }) : `Ngày ${index + 1}`
-    const proCount = Math.max(1, Math.floor((item.newUsers || 1) * 0.4 + (index % 3)))
-    const ultraCount = Math.max(0, Math.floor((item.newUsers || 1) * 0.2))
-    const revenue = proCount * 79000 + ultraCount * 99000
-    const conversionRate = item.newUsers > 0 ? Math.round(((proCount + ultraCount) / item.newUsers) * 100) : 12
+    const proCount = item.proUpgrades || 0
+    const ultraCount = item.ultraUpgrades || 0
+    const revenue = item.revenue || (proCount * 79000 + ultraCount * 99000)
+    const totalUpgrades = proCount + ultraCount
+    const conversionRate = item.newUsers > 0 ? Math.round((totalUpgrades / item.newUsers) * 100) : (totalUpgrades > 0 ? 100 : 0)
 
     return {
       date: item.date,
@@ -112,22 +114,22 @@ export default function AdminDashboardPage() {
     }
   }) || []
 
-  // Mock total metrics calculation
+  // Total metrics calculation based strictly on real DB values
   const totalPro = subscriptionChartData.reduce((acc, curr) => acc + curr.proCount, 0)
   const totalUltra = subscriptionChartData.reduce((acc, curr) => acc + curr.ultraCount, 0)
   const totalRevenue = subscriptionChartData.reduce((acc, curr) => acc + curr.revenue, 0)
   const avgConversionRate = subscriptionChartData.length > 0
     ? Math.round(subscriptionChartData.reduce((acc, curr) => acc + curr.conversionRate, 0) / subscriptionChartData.length)
-    : 14.8
+    : 0
 
-  // Expanded Activity Timeline Data
+  // Real Activity Timeline Data based on Backend DB metrics
   const activityTimelineData = dashboardData?.last7DaysContent?.map((item, index) => {
     const dateFormatted = item.date ? new Date(item.date).toLocaleDateString("vi-VN", { day: 'numeric', month: 'short' }) : `Ngày ${index + 1}`
-    const promptCount = item.contentGenerated || (index + 2) * 3
-    const imageCount = Math.floor(promptCount * 0.6)
-    const knowledgeCount = Math.floor((index % 2) + 1)
-    const loginCount = (item.newUsers || 2) + 5
-    const paymentCount = Math.max(1, Math.floor((item.newUsers || 1) * 0.3))
+    const promptCount = item.contentGenerated || 0
+    const imageCount = item.imageGenerated || 0
+    const knowledgeCount = item.knowledgeUploaded || 0
+    const loginCount = (item.userLogins || 0) + (item.newUsers || 0)
+    const paymentCount = item.paymentsCount || (item.proUpgrades || 0) + (item.ultraUpgrades || 0)
 
     return {
       date: item.date || `2026-08-${10 + index}`,
@@ -141,7 +143,7 @@ export default function AdminDashboardPage() {
     }
   }) || []
 
-  // Fetch real activity details from DB when chart date node is clicked
+  // Fetch real activity details strictly from DB when chart date node is clicked
   const handleChartClick = async (chartState: any) => {
     if (!chartState || !chartState.activePayload || !chartState.activePayload.length) return
 
@@ -151,85 +153,17 @@ export default function AdminDashboardPage() {
     
     setSelectedDate(dateLabel)
     setShowModal(true)
+    setSelectedActivities([])
 
     try {
       const res = await adminApi.getActivityDrilldown(rawDate)
-      if (res && Array.isArray(res.activities) && res.activities.length > 0) {
+      if (res && Array.isArray(res.activities)) {
         setSelectedActivities(res.activities)
-        return
       }
     } catch (err) {
-      console.warn("Could not load real activities from BE DB, fallback to demo payload", err)
+      console.warn("Could not load real activities from BE DB", err)
+      setSelectedActivities([])
     }
-
-    // Fallback demo activities if DB table is currently empty for that date
-    const mockUsers = [
-      { id: 101, name: "Nguyễn Hoàng Thành", email: "hoangthanh@gmail.com", tier: "Pro" },
-      { id: 102, name: "Trần Minh Khoa", email: "khoa025ne@socialsence.vn", tier: "Ultra" },
-      { id: 103, name: "Lê Thu Trang", email: "thutrang.agency@gmail.com", tier: "Free" },
-      { id: 104, name: "Phạm Quốc Bảo", email: "baopq@marketing.vn", tier: "Pro" },
-      { id: 105, name: "Đặng Mỹ Linh", email: "mylinh.content@gmail.com", tier: "Free" },
-    ]
-
-    const mockActivities: UserActivityItem[] = [
-      {
-        id: "act-1",
-        userId: mockUsers[0].id,
-        displayName: mockUsers[0].name,
-        email: mockUsers[0].email,
-        tier: mockUsers[0].tier,
-        actionType: "PAYMENT",
-        actionLabel: "Nâng cấp Gói Pro (79.000đ)",
-        detail: "Đã thanh toán thành công qua mã VietQR PayOS.",
-        timestamp: "17:04:22"
-      },
-      {
-        id: "act-2",
-        userId: mockUsers[1].id,
-        displayName: mockUsers[1].name,
-        email: mockUsers[1].email,
-        tier: mockUsers[1].tier,
-        actionType: "CREATE_PROMPT",
-        actionLabel: "Tạo bài viết AI Đa kênh",
-        detail: "Chủ đề: 'Kịch bản Video giới thiệu sản phẩm công nghệ Tết 2026'",
-        timestamp: "16:45:10"
-      },
-      {
-        id: "act-3",
-        userId: mockUsers[2].id,
-        displayName: mockUsers[2].name,
-        email: mockUsers[2].email,
-        tier: mockUsers[2].tier,
-        actionType: "IMAGE_GEN",
-        actionLabel: "Sinh ảnh AI minh họa",
-        detail: "Image Wizard prompt: 'Monochrome Studio Setup, Double Bezel, Minimalist'",
-        timestamp: "15:20:05"
-      },
-      {
-        id: "act-4",
-        userId: mockUsers[3].id,
-        displayName: mockUsers[3].name,
-        email: mockUsers[3].email,
-        tier: mockUsers[3].tier,
-        actionType: "UPLOAD_KNOWLEDGE",
-        actionLabel: "Nạp Tri thức Thương hiệu",
-        detail: "Đã tải lên tệp tài liệu: SanPhamGuide_v2.pdf (124 KB)",
-        timestamp: "14:12:40"
-      },
-      {
-        id: "act-5",
-        userId: mockUsers[4].id,
-        displayName: mockUsers[4].name,
-        email: mockUsers[4].email,
-        tier: mockUsers[4].tier,
-        actionType: "LOGIN",
-        actionLabel: "Đăng nhập hệ thống",
-        detail: "Truy cập từ trình duyệt Chrome di động (Android).",
-        timestamp: "11:05:18"
-      }
-    ]
-
-    setSelectedActivities(mockActivities)
   }
 
   // Grant Bonus Quota for a user via real Backend API
@@ -569,7 +503,14 @@ export default function AdminDashboardPage() {
 
             {/* User Activity List */}
             <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-1">
-              {selectedActivities.map((act) => (
+              {selectedActivities.length === 0 ? (
+                <div className="py-12 text-center flex flex-col items-center justify-center text-muted-foreground border rounded-xl border-dashed bg-muted/10">
+                  <Activity className="size-8 mb-2 opacity-50 text-muted-foreground" />
+                  <p className="font-semibold text-sm">Chưa có nhật ký hoạt động được ghi nhận trong ngày này</p>
+                  <p className="text-xs text-muted-foreground mt-1">Dữ liệu thời gian thực từ Database sẽ hiển thị tại đây ngay khi có hành động của người dùng.</p>
+                </div>
+              ) : (
+                selectedActivities.map((act) => (
                 <div
                   key={act.id}
                   className="p-4 rounded-xl border border-border/80 bg-card hover:bg-muted/10 transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
@@ -631,7 +572,7 @@ export default function AdminDashboardPage() {
                     </Link>
                   </div>
                 </div>
-              ))}
+              )))}
             </div>
 
             {/* Footer */}

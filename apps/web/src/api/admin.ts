@@ -9,7 +9,18 @@ export interface AdminDashboard {
   totalTrends: number
   activeApiKeys: number
   coolingDownApiKeys: number
-  last7DaysContent: { date: string; contentGenerated: number; newUsers: number }[]
+  last7DaysContent: {
+    date: string
+    contentGenerated: number
+    newUsers: number
+    imageGenerated?: number
+    knowledgeUploaded?: number
+    userLogins?: number
+    paymentsCount?: number
+    proUpgrades?: number
+    ultraUpgrades?: number
+    revenue?: number
+  }[]
 }
 
 export interface AdminUser {
