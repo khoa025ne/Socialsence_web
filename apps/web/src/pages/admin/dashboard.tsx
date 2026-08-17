@@ -302,7 +302,7 @@ export default function AdminDashboardPage() {
               Đang tải dữ liệu biểu đồ gói cước...
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <BarChart data={subscriptionChartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} />
                 <XAxis dataKey="dateFormatted" tick={{ fill: '#71717a', fontSize: 10, fontFamily: 'monospace' }} stroke="#e4e4e7" />
@@ -427,7 +427,7 @@ export default function AdminDashboardPage() {
               Đang tải dữ liệu lưu lượng...
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart
                 data={activityTimelineData}
                 onClick={handleChartClick}
